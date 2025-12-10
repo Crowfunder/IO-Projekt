@@ -8,6 +8,22 @@ import hashlib
 from backend.app import db
 from backend.database.models import Worker
 
+
+def getWorkerFromQRCode(file_stream):
+    try:
+        qr_secret = decodeQRImage(file_stream)
+        worker = getWorkerByQRCodeSecret(qr_secret)
+        return worker
+
+    except (MultipleCodesError, NoCodeFoundError, ValueError) as e:
+        raise e
+
+    except Exception as e:
+        print(f"Internal Error in getWorkerFromQRCode: {e}")
+        raise e
+
+
+
 def generateQRCode():
     pass
 

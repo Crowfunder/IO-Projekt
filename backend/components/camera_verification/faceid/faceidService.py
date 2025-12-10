@@ -1,7 +1,7 @@
 import face_recognition
 from backend.database.models import Worker
 
-def verifyWorkerFace(worker: Worker, ):
+def verifyWorkerFace(worker: Worker, image):
     '''
     original_image = worker.getFace()
     checked_image = checked_image (param)
@@ -11,3 +11,4 @@ def verifyWorkerFace(worker: Worker, ):
 
     results = face_recognition.compare_faces([biden_encoding], unknown_encoding)
     '''
+
