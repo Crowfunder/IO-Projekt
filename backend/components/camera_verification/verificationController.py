@@ -2,14 +2,11 @@ from flask import Blueprint, request, jsonify
 
 from backend.components.camera_verification.qrcode.qrcodeService import (
     getWorkerFromQRCode,
-    MultipleCodesError,
-    NoCodeFoundError
 )
 from backend.components.camera_verification.faceid.faceidService import (
     verifyWorkerFace
 )
-from backend.components.camera_verification.verificationService import (
-    WorkerCodeMismatchError,
+from backend.components.utils.imageUtils import (
     parseImage
 )
 
@@ -37,7 +34,8 @@ def post_camera_scan():
         return jsonify({'error': str(e)}), 400  # TODO: Fix, add proper error handling
 
 
-
-
-
-
+class WorkerCodeMismatchError(Exception):
+    """
+    Raised when detected face does not match with database
+    """
+    pass

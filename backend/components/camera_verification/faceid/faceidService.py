@@ -2,19 +2,15 @@ import face_recognition
 
 from backend.components.camera_verification.qrcode.qrcodeService import MultipleCodesError
 from backend.database.models import Worker
+from backend.components.workers.workerService import getWorkerEmbedding
 
 def verifyWorkerFace(worker: Worker, checked_image):
     '''
-    original_image = worker.getFace()
-    checked_image = checked_image (param)
-    original_encoding = face_recognition.face_encodings(original_image)[0]
-    unknown_encoding = face_recognition.face_encodings(checked_image)[0]
     # todo: moze encoding powinien być przechowywany w db zamiast obrazka?
-
-    results = face_recognition.compare_faces([biden_encoding], unknown_encoding)
+    # TODO: Może być więcej niż 1 zdjęcie! Możemy to wykorzystać do poprawy dokładności
     '''
 
-    original_image_embedding = worker.getFace() # TODO: Może być więcej niż 1 zdjęcie! Możemy to wykorzystać do poprawy dokładności
+    original_image_embedding = getWorkerEmbedding(worker)
     checked_face_embedding = face_recognition.face_encodings(checked_image)
 
     if len(checked_face_embedding) != 0:
@@ -23,13 +19,17 @@ def verifyWorkerFace(worker: Worker, checked_image):
     if not checked_face_embedding or len(checked_face_embedding) == 0:
         raise NoFacesFoundError("Nie znaleziono twarzy.")
 
+    faces_match = face_recognition.compare_faces(original_image_embedding, checked_face_embedding)
+    if not faces_match:
+        raise FaceNotMatchingError("Niezgodność zeskanowanej twarzy")
+    return faces_match
+
 
 class MultipleWorkersError(Exception):
     """
     Raised when more than one worker have been detected.
     """
     pass
-
 
 class FaceNotMatchingError(Exception):
     """
