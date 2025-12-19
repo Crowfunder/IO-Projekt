@@ -1,7 +1,7 @@
 from backend.app import db
 from backend.database.models import Entry, Worker
 
-def LogWorkerEntry(code: int, message: str, worker: Worker = None, image=None):
+def log_worker_entry(code: int, message: str, worker: Worker = None, image=None):
     if worker is None:
         worker_id = None
     else:
