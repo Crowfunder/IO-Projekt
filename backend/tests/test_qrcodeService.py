@@ -3,7 +3,7 @@ from backend.components.camera_verification.qrcode import qrcodeService
 def test_generate_and_decrypt_secret_functional():
     worker_id = 67
     worker_name = "Six Seven"
-    secret = qrcodeService.generateSecret(worker_id, worker_name)
+    secret = qrcodeService.generate_secret(worker_id, worker_name)
     data = qrcodeService.decryptSecret(secret)
 
     # Asercja 1: Upewnij się, że odszyfrowane dane są słownikiem

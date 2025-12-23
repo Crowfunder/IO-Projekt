@@ -48,7 +48,8 @@ class Entry(db.Model):
     worker_id = db.Column(db.Integer, db.ForeignKey('workers.id', ondelete='CASCADE'), nullable=True)
     code = db.Column(db.Integer, nullable=False)
     message = db.Column(db.String, nullable=False)
-    face_image = db.Column(db.Blob, nullable=True)
+    #face_image = db.Column(db.Blob, nullable=True)
+    face_image = db.Column(db.LargeBinary, nullable=True)
     def to_dict(self):
         return {
             "id": self.id,

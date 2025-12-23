@@ -4,12 +4,13 @@ import face_recognition
 
 from backend.components.camera_verification.qrcode.qrcodeService import generate_secret
 from backend.database.models import Worker
+from backend.app import db
 
 def get_worker_embedding(worker):
     """
     Returns and decodes worker face embedding from blob to np.array
     """
-    blob = worker.face_image_embedding
+    blob = worker.face_embedding
     buffer = io.BytesIO(blob)
     arr = np.load(buffer)
     return arr
@@ -26,11 +27,11 @@ def create_worker_embedding(img):
     blob = buffer.getvalue()
     return blob
 
-def newWorker(db, name, face_image, expiration_date):
+def newWorker(name, face_image, expiration_date):
     face_embedding_blob = create_worker_embedding(face_image)
     worker = Worker(
         name=name,
-        face_image=face_embedding_blob,
+        face_embedding=face_embedding_blob,
         expiration_date=expiration_date,
         secret="TEMP_SECRET"
     )
@@ -43,7 +44,7 @@ def newWorker(db, name, face_image, expiration_date):
     db.session.commit()
     return worker
 
-def extendWorkerExpiration(db, worker_id, new_expiration_date):
+def extendWorkerExpiration(worker_id, new_expiration_date):
     worker = db.session.get(Worker, worker_id)
     if not worker:
         raise ValueError(f"Worker with id {worker_id} not found")
@@ -51,7 +52,7 @@ def extendWorkerExpiration(db, worker_id, new_expiration_date):
     db.session.commit()
     return worker
 
-def updateWorkerName(db, worker_id, new_name):
+def updateWorkerName(worker_id, new_name):
     worker = db.session.get(Worker, worker_id)
     if not worker:
         raise ValueError(f"Worker with id {worker_id} not found")
@@ -59,11 +60,11 @@ def updateWorkerName(db, worker_id, new_name):
     db.session.commit()
     return worker
 
-def updateWorkerFaceImage(db, worker_id, new_face_image):
+def updateWorkerFaceImage(worker_id, new_face_image):
     worker = db.session.get(Worker, worker_id)
     if not worker:
         raise ValueError(f"Worker with id {worker_id} not found")
     new_face_embedding_blob = create_worker_embedding(new_face_image)
-    worker.face_image = new_face_embedding_blob
+    worker.face_embedding = new_face_embedding_blob
     db.session.commit()
     return worker
