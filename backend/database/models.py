@@ -1,5 +1,6 @@
 import datetime
 import sqlalchemy as sa
+from sqlalchemy import func
 from sqlalchemy.orm import mapped_column, relationship
 from flask_sqlalchemy import SQLAlchemy
 
@@ -25,7 +26,8 @@ class Worker(db.Model):
     __tablename__ = 'workers'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    face_embedding = db.Column(db.Blob, nullable=False)
+    #face_embedding = db.Column(db.Blob, nullable=False)
+    face_embedding = db.Column(db.LargeBinary, nullable=False)
     expiration_date = db.Column(db.DateTime, nullable=False)
     secret = db.Column(db.String, nullable=False)
     def to_dict(self):
@@ -42,11 +44,12 @@ class Worker(db.Model):
 class Entry(db.Model):
     __tablename__ = 'entries'
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC))
+    date = db.Column(db.DateTime(timezone=True), nullable=False, server_default=func.now())
     worker_id = db.Column(db.Integer, db.ForeignKey('workers.id', ondelete='CASCADE'), nullable=True)
     code = db.Column(db.Integer, nullable=False)
     message = db.Column(db.String, nullable=False)
-    face_image = db.Column(db.Blob, nullable=True)
+    #face_image = db.Column(db.Blob, nullable=True)
+    face_image = db.Column(db.LargeBinary, nullable=True)
     def to_dict(self):
         return {
             "id": self.id,
