@@ -10,6 +10,7 @@ import numpy as np
 import hashlib
 from backend.app import db
 from backend.database.models import Worker
+from datetime import datetime
 
 
 def get_worker_from_qr_code(img) -> Worker:
@@ -26,17 +27,23 @@ def get_worker_from_qr_code(img) -> Worker:
     - `InvalidCodeError` - The code is invalid or no worker with the code was found.
     - `MultipleCodesError` - Multiple QR codes were detected on the image.
     - `NoCodeFoundError` - No QR codes were found on the image.
-    - `ValueError` - ???
+    - `ExpiredCodeError` - The QR code is expired.
+    - `ValueError` - ??? (Unspecified error)
     '''
     try:
         qr_secret = decode_qr_image(img)
         worker = get_worker_by_qr_code_secret(qr_secret)
-        # TODO: Check if the code is expired!
+
         if not worker:
             raise InvalidCodeError("Wykryto niepoprawny kod QR")
+
+        # Check if the worker's expiration date has passed
+        if worker.expiration_date and worker.expiration_date < datetime.utcnow():
+            raise ExpiredCodeError("Przepustka wygasła")
+
         return worker
 
-    except (MultipleCodesError, NoCodeFoundError, InvalidCodeError, ValueError) as e:
+    except (MultipleCodesError, NoCodeFoundError, InvalidCodeError, ExpiredCodeError, ValueError) as e:
         raise e
 
     except Exception as e:
@@ -46,6 +53,7 @@ def get_worker_from_qr_code(img) -> Worker:
 
 
 def generate_qr_code():
+
     pass
 
 def validate_qr_code():
@@ -66,6 +74,10 @@ class NoCodeFoundError(QRCodeError):
 
 class InvalidCodeError(QRCodeError):
     """Raised when invalid code is detected"""
+    pass
+
+class ExpiredCodeError(QRCodeError):
+    """Raised when the QR code is expired"""
     pass
 
 def decode_qr_image(img) -> str:
