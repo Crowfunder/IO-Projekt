@@ -24,10 +24,26 @@ const EntryTerminal = () => {
     return `${time}-${day}.${month}.${year}-${weekDay}`;
   };
 
+  useEffect(() => {
+    let interval;
+    if (status === 'idle') {
+      interval = setInterval(() => {
+        handleScan();
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [status]);
   // CONFIGURATION: Change this to your actual backend endpoint
-  const API_ENDPOINT = "http://localhost:3000/api/skan";
+  const API_ENDPOINT = "/api/skan";
 
   const handleScan = async () => {
+    if (!webcamRef.current || !webcamRef.current.video || webcamRef.current.video.readyState !== 4) {
+        return;
+    }
+
+    if (status !== 'idle') return;
+
+    setStatus('processing');
     // Prevent double-scanning while waiting
     if (status !== 'idle') return;
 
@@ -72,7 +88,7 @@ const EntryTerminal = () => {
   };
 
   return (
-    <div className="terminal-container" onClick={handleScan}>
+    <div className="terminal-container">
       {/* 1. Camera Feed */}
       <Webcam
         audio={false}
