@@ -1,4 +1,7 @@
+import json
 import random
+from cryptography.fernet import Fernet
+from backend.config import QR_SECRET_KEY
 
 from flask import request, send_file, Response
 from sqlalchemy import select
@@ -106,9 +109,25 @@ def generate_secret(worker_id: int, name: str) -> str:
     '''
 
     rand_value = str(random.randint(100000, 999999))
-    raw_string = f"{worker_id}:{name}:{rand_value}"
-    secret_hash = hashlib.sha256(raw_string.encode()).hexdigest()
-    return secret_hash
+    data = {
+        "worker_id": worker_id,
+        "name": name,
+        "rand_value": rand_value
+    }
+    json_data = json.dumps(data).encode('utf-8')
+    fernet = Fernet(QR_SECRET_KEY)
+    secret = fernet.encrypt(json_data)
+    return secret.decode('utf-8')
+
+def decryptSecret(encrypted_secret: str):
+    try:
+        fernet = Fernet(QR_SECRET_KEY)
+        decrypted = fernet.decrypt(encrypted_secret.encode('utf-8'))
+        data = json.loads(decrypted.decode('utf-8'))
+        return data
+    except Exception as e:
+        print(f"Błąd deszyfrowania: {e}")
+        return None
 
 def get_worker_by_qr_code_secret(secret: str):
     '''
