@@ -97,7 +97,7 @@ def update_worker(worker_id):
     return WorkerSchema(many=False).dump(worker), 200
 
 @bp.route('/api/workers/invalidate/<worker_id>', methods=['PUT'])
-def update_worker(worker_id):
+def invalidate_worker(worker_id):
     """
     Invalidate an existing worker entry permit in the database.
 
@@ -114,5 +114,5 @@ def update_worker(worker_id):
 
     expiration_date = datetime.now()
     extend_worker_expiration(worker, expiration_date)
-    
+
     return WorkerSchema(many=False).dump(worker), 200
