@@ -29,7 +29,7 @@ def verify_worker_face(worker: Worker, checked_image) -> list:
     except Exception as e:
         raise FaceIDError(str(e))
 
-    if len(checked_face_embedding) != 0:
+    if len(checked_face_embedding) >1:
         raise MultipleWorkersError("Wykryto więcej niż jednego pracownika.")
 
     if not checked_face_embedding or len(checked_face_embedding) == 0:
