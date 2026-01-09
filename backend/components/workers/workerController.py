@@ -11,7 +11,7 @@ bp = Blueprint('bp_workers', __name__)
 @bp.route('/api/workers/<worker_id>', methods=['GET'])
 def get_workers(worker_id):
     """
-    Retrieves workers from the database.
+    [GET] Retrieves workers from the database.
 
     **Parameters**:
     - `worker_id` (int|None): The ID of the worker to retrieve. If `None`, retrieves all workers.
@@ -37,7 +37,7 @@ def get_workers(worker_id):
 @bp.route('/api/workers', methods=['POST'])
 def create_worker_endpoint():
     """
-    Creates a new worker in the database.
+    [POST] Creates a new worker in the database.
 
     **Request Body**:
     - `name` (str): The name of the worker.
@@ -56,13 +56,16 @@ def create_worker_endpoint():
     expiration_date = datetime.fromisoformat(expiration_date)
     face_image = parse_image(image_file.read())
     worker = create_worker(name, face_image, expiration_date)
+
+    # TODO: the endpoint should return **THE QR CODE**
+
     return WorkerSchema(many=False).dump(worker), 200
 
 
 @bp.route('/api/workers/<worker_id>', methods=['PUT'])
 def update_worker(worker_id):
     """
-    Updates an existing worker in the database.
+    [PUT] Updates an existing worker in the database.
 
     **Parameters**:
     - `worker_id` (int): The ID of the worker to update.
@@ -99,7 +102,7 @@ def update_worker(worker_id):
 @bp.route('/api/workers/invalidate/<worker_id>', methods=['PUT'])
 def invalidate_worker(worker_id):
     """
-    Invalidate an existing worker entry permit in the database.
+    [PUT] Invalidate an existing worker entry permit in the database.
 
     **Parameters**:
     - `worker_id` (int): The ID of the worker to update.

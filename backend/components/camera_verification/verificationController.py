@@ -11,9 +11,35 @@ bp = Blueprint('bp_verification', __name__)
 
 @bp.route('/api/skan', methods=['POST'])
 def post_camera_scan():
-    '''
-    TODO: Swagger docstring for post_camera_scan
-    '''
+    """
+    [POST] Verifies a worker by scanning a QR code and matching their face.
+
+    **Request Body**:
+    - `file` (FileStorage): The image file containing the QR code and the worker's face.
+
+    **Process**:
+    - Extracts and decodes the QR code from the image.
+    - Retrieves the worker associated with the QR code.
+    - Verifies the worker's face matches the one stored in the database.
+
+    **Returns**:
+    - `tuple`: A tuple containing the verification result and the HTTP status code.
+      - On success:
+        - HTTP 200: Verification successful.
+      - On failure:
+        - HTTP 400: Malformed request (e.g., missing file or invalid QR code).
+        - HTTP 403: Permission denied (e.g., expired QR code or face mismatch).
+        - HTTP 500: Internal server error.
+
+    **Example Response**:
+    ```json
+    {
+        "code": 0,
+        "message": "Weryfikacja udana.",
+        "logged": true
+    }
+    ```
+    """
     if 'file' not in request.files:
         return jsonify({'error': 'Brak pliku w żądaniu (oczekiwano klucza "file").'}), 400
 
