@@ -95,3 +95,24 @@ def update_worker(worker_id):
         update_worker_face_image(worker, face_image)
 
     return WorkerSchema(many=False).dump(worker), 200
+
+@bp.route('/api/workers/invalidate/<worker_id>', methods=['PUT'])
+def update_worker(worker_id):
+    """
+    Invalidate an existing worker entry permit in the database.
+
+    **Parameters**:
+    - `worker_id` (int): The ID of the worker to update.
+
+    **Returns**:
+    - `tuple`: A tuple containing the serialized updated worker and the HTTP status code 200.
+      - If the worker is not found, returns a 404 status code.
+    """
+    worker = get_worker_by_id(worker_id)
+    if not worker:
+        return 'Worker not found', 404
+
+    expiration_date = datetime.now()
+    extend_worker_expiration(worker, expiration_date)
+    
+    return WorkerSchema(many=False).dump(worker), 200
