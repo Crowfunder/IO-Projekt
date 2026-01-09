@@ -69,71 +69,42 @@ def create_worker(name, face_image, expiration_date):
     return worker
 
 
-def extend_worker_expiration(worker_id, new_expiration_date):
+def extend_worker_expiration(worker: Worker, new_expiration_date):
     """
     Extends the expiration date of a worker entry permit.
 
     **Parameters**:
-    - `worker_id` (int): The ID of the worker whose expiration date is to be updated.
+    - `worker` (Worker): The worker object whose expiration date is to be updated.
     - `new_expiration_date` (datetime): The new expiration date.
-
-    **Returns**:
-    - `Worker`: The updated Worker object.
-
-    **Raises**:
-    - `ValueError`: If no worker with the given ID is found.
     """
-    worker = db.session.get(Worker, worker_id)
-    if not worker:
-        raise ValueError(f"Worker with id {worker_id} not found")
     worker.expiration_date = new_expiration_date
     db.session.commit()
     return worker
 
 
-def update_worker_name(worker_id, new_name):
+def update_worker_name(worker: Worker, new_name: str):
     """
     Updates the name of a worker.
 
     **Parameters**:
-    - `worker_id` (int): The ID of the worker whose name is to be updated.
+    - `worker` (Worker): The worker object whose name is to be updated.
     - `new_name` (str): The new name for the worker.
-
-    **Returns**:
-    - `Worker`: The updated Worker object.
-
-    **Raises**:
-    - `ValueError`: If no worker with the given ID is found.
     """
-    worker = db.session.get(Worker, worker_id)
-    if not worker:
-        raise ValueError(f"Worker with id {worker_id} not found")
     worker.name = new_name
     db.session.commit()
-    return worker
 
 
-def update_worker_face_image(worker_id, new_face_image):
+def update_worker_face_image(worker: Worker, new_face_image):
     """
     Updates the face image of a worker.
 
     **Parameters**:
-    - `worker_id` (int): The ID of the worker whose face image is to be updated.
+    - `worker` (Worker): The worker object whose face image is to be updated.
     - `new_face_image` (ndarray): The new face image of the worker.
-
-    **Returns**:
-    - `Worker`: The updated Worker object.
-
-    **Raises**:
-    - `ValueError`: If no worker with the given ID is found.
     """
-    worker = db.session.get(Worker, worker_id)
-    if not worker:
-        raise ValueError(f"Worker with id {worker_id} not found")
     new_face_embedding_blob = create_worker_embedding(new_face_image)
     worker.face_embedding = new_face_embedding_blob
     db.session.commit()
-    return worker
 
 def get_all_workers():
     """
