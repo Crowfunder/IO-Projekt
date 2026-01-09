@@ -1,5 +1,7 @@
 '''
-The `camera_verification` directory handles the verification of workers using QR codes and face recognition.
+# Camera Verification
+
+This module handles the verification of workers using QR codes and face recognition.
 
 ## Directory Structure
 

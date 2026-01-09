@@ -1,7 +1,9 @@
 '''
+# QR Code
+
+
 Handles the generation and decoding of QR codes for worker verification.
 
----
 
 ## Key Components
 

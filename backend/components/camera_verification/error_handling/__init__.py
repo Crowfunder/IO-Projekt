@@ -1,4 +1,5 @@
 '''
+# Error Handling
 Catches and processes exceptions raised during worker verification and turns them into human-readable responses for REST API, as well as for entry event logging. Handles **not only** error states, but normal state as well, that is no exception.
 
 ## Directory Structure
