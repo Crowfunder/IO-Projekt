@@ -41,4 +41,4 @@ def post_camera_scan():
 
     finally:
         log_worker_entry(response.code, response.message, worker, img_bytes)
-        return jsonify({response.asdict()}), http_code
+        return jsonify(response.asdict()), http_code
