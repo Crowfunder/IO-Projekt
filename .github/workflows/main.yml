@@ -25,6 +25,8 @@ jobs:
         with:
           python-version: '3.13'
 
+      - run: sudo apt install libcairo2-dev pkg-config python3-dev
+
       # ADJUST THIS: install all dependencies (including pdoc)
       - run: pip install backend/ --verbose
       # ADJUST THIS: build your documentation into docs/.
