@@ -5,7 +5,14 @@ const API_BASE = '/api/workers';
  */
 const formatDate = (date) => {
     if (!date) return '';
-    return date.toISOString(); // Format: 2023-12-25T12:00:00.000Z
+    
+    // If it's already a Date object, use it
+    if (date instanceof Date) {
+        return date.toISOString();
+    }
+    
+    // If it's a string or something else, force it into a Date object first
+    return new Date(date).toISOString();
 };
 
 export const workerApi = {
@@ -58,5 +65,12 @@ export const workerApi = {
         });
         if (!res.ok) throw new Error('Failed to invalidate worker');
         return res.json();
+    },
+
+    getEntryPass: async (id) => {
+        const res = await fetch(`${API_BASE}/entrypass/${id}`);
+        if (!res.ok) throw new Error('Failed to fetch entry pass');
+        // Return as a Blob (binary image data)
+        return res.blob();
     }
 };

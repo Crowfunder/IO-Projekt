@@ -1,19 +1,27 @@
 import React, { useState } from 'react';
-import { TextInput, FileInput, Button, Paper, Text, Notification } from '@mantine/core';
+import { TextInput, FileInput, Button, Paper, Text, Notification, Group, Modal, Image, Center } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconUpload, IconCheck, IconX } from '@tabler/icons-react';
+import { IconUpload, IconCheck, IconX, IconPrinter } from '@tabler/icons-react';
 import { workerApi } from '../../services/workerApi';
 import { useNavigate } from 'react-router-dom';
 
 export default function AddWorkerPage() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    
+    // Form State
     const [formData, setFormData] = useState({
         name: '',
         expiration_date: new Date(),
         file: null
     });
+
+    // Notification State
     const [notification, setNotification] = useState(null);
+
+    // 👇 NEW: State for the generated Pass Image
+    const [passImage, setPassImage] = useState(null);
+    const [passModalOpen, setPassModalOpen] = useState(false);
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.file) {
@@ -23,15 +31,36 @@ export default function AddWorkerPage() {
 
         setLoading(true);
         try {
-            await workerApi.create(formData.name, formData.expiration_date, formData.file);
-            // Success
-            setNotification({ color: 'green', message: 'Worker created successfully.' });
-            setTimeout(() => navigate('/admin/workers'), 1500); // Redirect after 1.5s
+            // 1. Create the Worker
+            const newWorker = await workerApi.create(formData.name, formData.expiration_date, formData.file);
+            
+            setNotification({ color: 'green', message: 'Worker created successfully. Generating Pass...' });
+
+            // 2. Fetch the Entry Pass Image
+            const imageBlob = await workerApi.getEntryPass(newWorker.id);
+            
+            // 3. Convert Blob to URL for display
+            const imageUrl = URL.createObjectURL(imageBlob);
+            setPassImage(imageUrl);
+            setPassModalOpen(true); // Open the modal
+
         } catch (err) {
             setNotification({ color: 'red', message: err.message });
         } finally {
             setLoading(false);
         }
+    };
+
+    // Clean up when closing modal
+    const handleCloseModal = () => {
+        setPassModalOpen(false);
+        navigate('/admin/workers'); // Redirect to list
+    };
+
+    // Print helper
+    const handlePrint = () => {
+        const printWindow = window.open(passImage);
+        printWindow.print();
     };
 
     return (
@@ -83,6 +112,26 @@ export default function AddWorkerPage() {
                     Create Pass
                 </Button>
             </Paper>
+
+            {/* 👇 NEW: Modal to show the generated pass */}
+            <Modal 
+                opened={passModalOpen} 
+                onClose={handleCloseModal} 
+                title="Entry Pass Generated"
+                size="lg"
+            >
+                <Center>
+                    {passImage && <Image src={passImage} alt="Entry Pass" radius="md" />}
+                </Center>
+                <Group justify="center" mt="md">
+                    <Button leftSection={<IconPrinter size={16}/>} onClick={handlePrint}>
+                        Print Pass
+                    </Button>
+                    <Button variant="default" onClick={handleCloseModal}>
+                        Done
+                    </Button>
+                </Group>
+            </Modal>
         </div>
     );
 }

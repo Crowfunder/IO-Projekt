@@ -15,11 +15,28 @@ export default function WorkersListPage() {
 
   useEffect(() => { loadWorkers(); }, []);
 
-  const loadWorkers = async () => {
+const loadWorkers = async () => {
     try {
         const data = await workerApi.getAll();
-        setWorkers(Array.isArray(data) ? data : []);
-    } catch (err) { console.error(err); }
+        
+        // 👇 DEBUGGING: Check your browser console to see what appears here
+        console.log("DATA RECEIVED FROM BACKEND:", data);
+
+        // Handle different data structures automatically:
+        if (Array.isArray(data)) {
+            // Case 1: Backend returns [ {id:1}, {id:2} ]
+            setWorkers(data);
+        } else if (data && Array.isArray(data.workers)) {
+            // Case 2: Backend returns { workers: [ {id:1} ] }
+            setWorkers(data.workers);
+        } else {
+            console.error("Unknown data format. Expected an array.", data);
+            setWorkers([]); 
+        }
+
+    } catch (err) {
+        console.error("API Error:", err);
+    }
   };
 
   // Open Edit Modal
