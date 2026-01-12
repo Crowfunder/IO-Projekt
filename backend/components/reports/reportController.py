@@ -12,82 +12,23 @@ bp = Blueprint('reports', __name__, url_prefix='/api/raport')
 
 @bp.route('', methods=['GET'])
 def generate_report():
-    """
-    Pobiera raport wejść pracowników na podstawie zadanych filtrów.
+    '''
+        Retrieves entry report data by joining Entry records with Worker data.
 
-    Endpoint ten pozwala na filtrowanie wpisów (Entry) po dacie, pracowniku oraz statusie walidacji (poprawne/niepoprawne).
-    Zwraca dane w formacie JSON (w tym obraz twarzy zakodowany w Base64), które mogą posłużyć do wygenerowania tabeli lub pliku PDF.
+        This function handles filtering by date range, specific worker, and entry validity status.
+        Results are sorted in descending order by date.
 
-    ---
-    tags:
-      - Raporty
-    parameters:
-      - name: date_from
-        in: query
-        type: string
-        required: false
-        description: Data początkowa zakresu (format YYYY-MM-DD lub ISO).
-      - name: date_to
-        in: query
-        type: string
-        required: false
-        description: Data końcowa zakresu (format YYYY-MM-DD lub ISO). Jeśli podano samą datę, obejmuje ona cały dzień (do 23:59:59).
-      - name: pracownik_id
-        in: query
-        type: integer
-        required: false
-        description: ID pracownika do filtrowania.
-      - name: wejscia_niepoprawne
-        in: query
-        type: boolean
-        required: false
-        allowEmptyValue: true
-        description: Flaga - jeśli obecna, uwzględnia wejścia niepoprawne (kod błędu != 0).
-      - name: wejscia_poprawne
-        in: query
-        type: boolean
-        required: false
-        allowEmptyValue: true
-        description: Flaga - jeśli obecna, uwzględnia wejścia poprawne (kod == 0).
-    responses:
-      200:
-        description: Pomyślnie wygenerowano raport.
-        schema:
-          type: object
-          properties:
-            count:
-              type: integer
-              description: Liczba znalezionych wpisów.
-            filters:
-              type: object
-              description: Filtry użyte w zapytaniu.
-            data:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  date:
-                    type: string
-                    format: date-time
-                  code:
-                    type: integer
-                    description: Kod odpowiedzi (0 = sukces).
-                  message:
-                    type: string
-                  worker_id:
-                    type: integer
-                  worker_name:
-                    type: string
-                  face_image:
-                    type: string
-                    description: Obraz twarzy zakodowany w Base64 (lub null).
-      400:
-        description: Błąd walidacji parametrów.
-      500:
-        description: Wewnętrzny błąd serwera.
-    """
+        **Parameters**:
+        - `date_from` (datetime): Start date (inclusive). Defaults to None.
+        - `date_to` (datetime): End date (inclusive). Defaults to None.
+        - `worker_id` (int): Worker ID to filter by. Defaults to None.
+        - `show_valid` (bool): Whether to include valid entries (code 0). If selected together with show_invalid (or both are unselected), returns all types.
+        - `show_invalid` (bool): Whether to include invalid entries (code != 0). If selected together with show_valid (or both are unselected), returns all types.
+
+        **Returns**:
+        - `List[Tuple[Entry, Optional[Worker]]]` - A list of tuples where the first element is the entry object (Entry) and the second is the worker object (Worker) or None if the entry has no assigned worker.
+    '''
+
     try:
         date_from_str = request.args.get('date_from')
         date_to_str = request.args.get('date_to')
@@ -135,7 +76,7 @@ def generate_report():
                 'message': entry.message,
                 'worker_id': entry.worker_id,
                 'worker_name': worker.name if worker else 'Nieznany',
-                'face_image': encoded_image  # Dodane pole
+                'face_image': encoded_image
             })
 
         return jsonify({
