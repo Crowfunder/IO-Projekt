@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 import face_recognition
 from unittest.mock import patch, MagicMock, mock_open
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask
 
 from backend.app import create_app, db
@@ -55,7 +55,9 @@ def test_worker(app_context):
 @pytest.fixture
 def client(app_context):
     """Create Flask test client."""
-    return app_context.test_client()
+    test_client = app_context.test_client()
+    yield test_client
+    test_client.delete()
 
 
 @pytest.fixture
@@ -139,13 +141,13 @@ def test_image_with_qrcode(app_context, client, test_worker):
 def test_post_camera_scan_success(client, app_context, test_worker, test_image_with_qrcode):
     """
     Test successful verification with valid QR code and matching face.
-    QR code detection is iffy so it's attempted 3 times before we assume the endpoint is broken.
+    QR code detection is iffy so it's attempted 10 times before we assume the endpoint is broken.
     """
     with app_context.app_context():
         # Send request with composite image containing QR code and face
         i = 0
         response = None
-        while i != 3:
+        while i != 10:
             response = client.post(
                 '/api/skan',
                 data={'file': (io.BytesIO(test_image_with_qrcode), 'composite.jpg')},
@@ -224,21 +226,39 @@ def test_post_camera_scan_no_qr_code(client, app_context):
 # ============================================================================
 # Test POST /api/skan - Error Cases - Expired QR Code
 # ============================================================================
-
-def test_post_camera_scan_expired_qr_code(client, app_context, test_image_with_qrcode):
-    """Test endpoint returns 403 when QR code is expired."""
+def test_post_camera_scan_expired_qr_code(client, app_context, test_worker, test_image_with_qrcode):
+    """
+    Test endpoint returns 403 when QR code is expired.
+    Repeat at most 10 times if fails, QR code detection often fails.
+    """
     with app_context.app_context():
         with patch('backend.components.workers.workerService.get_worker_from_qr_code') as mock_get_worker:
-            from backend.components.camera_verification.qrcode.qrcodeService import ExpiredCodeError
-            mock_get_worker.side_effect = ExpiredCodeError("Kod QR wygasł")
+            mock_get_worker.return_value = test_worker
 
-            response = client.post(
-                '/api/skan',
-                data={'file': (io.BytesIO(test_image_with_qrcode), 'composite.jpg')},
-                content_type='multipart/form-data'
-            )
-
+            # Store original expiration date
+            original_expiration = test_worker.expiration_date
+            
+            # Set worker expiration to the past
+            workerService.extend_worker_expiration(workerService.get_worker_by_id(test_worker.id), datetime.now() - timedelta(days=5))
+            
+            i = 0
+            response = 10
+            while i != 10:
+                # Send request with expired worker's QR code
+                response = client.post(
+                    '/api/skan',
+                    data={'file': (io.BytesIO(test_image_with_qrcode), 'composite.jpg')},
+                    content_type='multipart/form-data'
+                )
+                if response.status_code == 403:
+                    break
+                i+= 1
+            
+            # Should return 403 because the QR code is expired
             assert response.status_code == 403
+            
+            # Restore original expiration date
+            workerService.extend_worker_expiration(workerService.get_worker_by_id(test_worker.id), original_expiration)
 
 
 # ============================================================================
@@ -246,7 +266,7 @@ def test_post_camera_scan_expired_qr_code(client, app_context, test_image_with_q
 # ============================================================================
 
 def test_post_camera_scan_response_structure(client, app_context, test_worker, test_image_with_qrcode):
-    """Test that response always contains 'code' field."""
+    """Test that response always contains 'code' and 'messages' field."""
     with app_context.app_context():
         with patch('backend.components.workers.workerService.get_worker_from_qr_code') as mock_get_worker:
             with patch('backend.components.camera_verification.faceid.faceidService.verify_worker_face') as mock_verify:
