@@ -166,66 +166,66 @@ def generate_report():
         return jsonify({'error': str(e)}), 500
 
 
-bp.route('/pdf', methods=['GET'])
+@bp.route('/pdf', methods=['GET'])
 def generate_pdf_report():
     """
-    Generates a report in PDF format based on provided filters.
+        Generates a report in PDF format based on provided filters.
 
-    Retrieves exactly the same parameters as the JSON version.
+        Retrieves exactly the same parameters as the JSON version.
 
-    **Parameters**:
-    - `date_from` (str): Start date of the range (format YYYY-MM-DD or ISO). Optional.
-    - `date_to` (str): End date of the range (format YYYY-MM-DD or ISO). Optional.
-    - `pracownik_id` (int): Worker ID to filter by. Optional.
-    - `wejscia_niepoprawne` (bool): Flag - if present, includes invalid entries.
-    - `wejscia_poprawne` (bool): Flag - if present, includes valid entries.
+        **Parameters**:
+        - `date_from` (str): Start date of the range (format YYYY-MM-DD or ISO). Optional.
+        - `date_to` (str): End date of the range (format YYYY-MM-DD or ISO). Optional.
+        - `pracownik_id` (int): Worker ID to filter by. Optional.
+        - `wejscia_niepoprawne` (bool): Flag - if present, includes invalid entries.
+        - `wejscia_poprawne` (bool): Flag - if present, includes valid entries.
 
-    **Returns**:
-    - `application/pdf` - A downloadable PDF file.
+        **Returns**:
+        - `application/pdf` - A downloadable PDF file.
 
-    ---
-    tags:
-      - Reports
-    parameters:
-      - name: date_from
-        in: query
-        type: string
-        required: false
-        description: Start date of the range (format YYYY-MM-DD or ISO).
-      - name: date_to
-        in: query
-        type: string
-        required: false
-        description: End date of the range (format YYYY-MM-DD or ISO).
-      - name: pracownik_id
-        in: query
-        type: integer
-        required: false
-        description: Worker ID to filter by.
-      - name: wejscia_niepoprawne
-        in: query
-        type: boolean
-        required: false
-        allowEmptyValue: true
-        description: Flag - if present, includes invalid entries.
-      - name: wejscia_poprawne
-        in: query
-        type: boolean
-        required: false
-        allowEmptyValue: true
-        description: Flag - if present, includes valid entries.
-    responses:
-      200:
-        description: PDF report generated successfully.
-        content:
-          application/pdf:
-            schema:
-              type: string
-              format: binary
-      400:
-        description: Parameter validation error.
-      500:
-        description: Internal server error.
+        ---
+        tags:
+          - Reports
+        parameters:
+          - name: date_from
+            in: query
+            type: string
+            required: false
+            description: Start date of the range (format YYYY-MM-DD or ISO).
+          - name: date_to
+            in: query
+            type: string
+            required: false
+            description: End date of the range (format YYYY-MM-DD or ISO).
+          - name: pracownik_id
+            in: query
+            type: integer
+            required: false
+            description: Worker ID to filter by.
+          - name: wejscia_niepoprawne
+            in: query
+            type: boolean
+            required: false
+            allowEmptyValue: true
+            description: Flag - if present, includes invalid entries.
+          - name: wejscia_poprawne
+            in: query
+            type: boolean
+            required: false
+            allowEmptyValue: true
+            description: Flag - if present, includes valid entries.
+        responses:
+          200:
+            description: PDF report generated successfully.
+            content:
+              application/pdf:
+                schema:
+                  type: string
+                  format: binary
+          400:
+            description: Parameter validation error.
+          500:
+            description: Internal server error.
     """
     try:
         date_from_str = request.args.get('date_from')
