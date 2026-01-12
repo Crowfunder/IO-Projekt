@@ -13,81 +13,92 @@ bp = Blueprint('reports', __name__, url_prefix='/api/raport')
 @bp.route('', methods=['GET'])
 def generate_report():
     """
-    Pobiera raport wejść pracowników na podstawie zadanych filtrów.
+        Retrieves worker entry reports based on provided filters.
 
-    Endpoint ten pozwala na filtrowanie wpisów (Entry) po dacie, pracowniku oraz statusie walidacji (poprawne/niepoprawne).
-    Zwraca dane w formacie JSON (w tym obraz twarzy zakodowany w Base64), które mogą posłużyć do wygenerowania tabeli lub pliku PDF.
+        This endpoint allows filtering entries (Entry) by date, worker, and validation status (valid/invalid).
+        Returns data in JSON format (including Base64 encoded face image), which can be used to generate tables or PDF files.
 
-    ---
-    tags:
-      - Raporty
-    parameters:
-      - name: date_from
-        in: query
-        type: string
-        required: false
-        description: Data początkowa zakresu (format YYYY-MM-DD lub ISO).
-      - name: date_to
-        in: query
-        type: string
-        required: false
-        description: Data końcowa zakresu (format YYYY-MM-DD lub ISO). Jeśli podano samą datę, obejmuje ona cały dzień (do 23:59:59).
-      - name: pracownik_id
-        in: query
-        type: integer
-        required: false
-        description: ID pracownika do filtrowania.
-      - name: wejscia_niepoprawne
-        in: query
-        type: boolean
-        required: false
-        allowEmptyValue: true
-        description: Flaga - jeśli obecna, uwzględnia wejścia niepoprawne (kod błędu != 0).
-      - name: wejscia_poprawne
-        in: query
-        type: boolean
-        required: false
-        allowEmptyValue: true
-        description: Flaga - jeśli obecna, uwzględnia wejścia poprawne (kod == 0).
-    responses:
-      200:
-        description: Pomyślnie wygenerowano raport.
-        schema:
-          type: object
-          properties:
-            count:
-              type: integer
-              description: Liczba znalezionych wpisów.
-            filters:
+        **Parameters**:
+        - `date_from` (str): Start date of the range (format YYYY-MM-DD or ISO). Optional.
+        - `date_to` (str): End date of the range (format YYYY-MM-DD or ISO). If only date is provided, it covers the whole day (until 23:59:59). Optional.
+        - `pracownik_id` (int): Worker ID to filter by. Optional.
+        - `wejscia_niepoprawne` (bool): Flag - if present, includes invalid entries (error code != 0).
+        - `wejscia_poprawne` (bool): Flag - if present, includes valid entries (error code == 0).
+
+        **Returns**:
+        - `JSON` - Object containing count, filters used, and the list of entry data.
+
+        ---
+        tags:
+          - Reports
+        parameters:
+          - name: date_from
+            in: query
+            type: string
+            required: false
+            description: Start date of the range (format YYYY-MM-DD or ISO).
+          - name: date_to
+            in: query
+            type: string
+            required: false
+            description: End date of the range (format YYYY-MM-DD or ISO). If only date is provided, covers the whole day (until 23:59:59).
+          - name: pracownik_id
+            in: query
+            type: integer
+            required: false
+            description: Worker ID to filter by.
+          - name: wejscia_niepoprawne
+            in: query
+            type: boolean
+            required: false
+            allowEmptyValue: true
+            description: Flag - if present, includes invalid entries (error code != 0).
+          - name: wejscia_poprawne
+            in: query
+            type: boolean
+            required: false
+            allowEmptyValue: true
+            description: Flag - if present, includes valid entries (error code == 0).
+        responses:
+          200:
+            description: Report successfully generated.
+            schema:
               type: object
-              description: Filtry użyte w zapytaniu.
-            data:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  date:
-                    type: string
-                    format: date-time
-                  code:
-                    type: integer
-                    description: Kod odpowiedzi (0 = sukces).
-                  message:
-                    type: string
-                  worker_id:
-                    type: integer
-                  worker_name:
-                    type: string
-                  face_image:
-                    type: string
-                    description: Obraz twarzy zakodowany w Base64 (lub null).
-      400:
-        description: Błąd walidacji parametrów.
-      500:
-        description: Wewnętrzny błąd serwera.
+              properties:
+                count:
+                  type: integer
+                  description: Number of entries found.
+                filters:
+                  type: object
+                  description: Filters used in the query.
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      date:
+                        type: string
+                        format: date-time
+                      code:
+                        type: integer
+                        description: Response code (0 = success).
+                      message:
+                        type: string
+                      worker_id:
+                        type: integer
+                      worker_name:
+                        type: string
+                      face_image:
+                        type: string
+                        description: Base64 encoded face image (or null).
+          400:
+            description: Parameter validation error.
+          500:
+            description: Internal server error.
     """
+
     try:
         date_from_str = request.args.get('date_from')
         date_to_str = request.args.get('date_to')
@@ -135,7 +146,7 @@ def generate_report():
                 'message': entry.message,
                 'worker_id': entry.worker_id,
                 'worker_name': worker.name if worker else 'Nieznany',
-                'face_image': encoded_image  # Dodane pole
+                'face_image': encoded_image
             })
 
         return jsonify({
@@ -158,8 +169,63 @@ def generate_report():
 @bp.route('/pdf', methods=['GET'])
 def generate_pdf_report():
     """
-    Generuje raport w formacie PDF na podstawie zadanych filtrów.
-    Pobiera dokładnie te same parametry co wersja JSON.
+        Generates a report in PDF format based on provided filters.
+
+        Retrieves exactly the same parameters as the JSON version.
+
+        **Parameters**:
+        - `date_from` (str): Start date of the range (format YYYY-MM-DD or ISO). Optional.
+        - `date_to` (str): End date of the range (format YYYY-MM-DD or ISO). Optional.
+        - `pracownik_id` (int): Worker ID to filter by. Optional.
+        - `wejscia_niepoprawne` (bool): Flag - if present, includes invalid entries.
+        - `wejscia_poprawne` (bool): Flag - if present, includes valid entries.
+
+        **Returns**:
+        - `application/pdf` - A downloadable PDF file.
+
+        ---
+        tags:
+          - Reports
+        parameters:
+          - name: date_from
+            in: query
+            type: string
+            required: false
+            description: Start date of the range (format YYYY-MM-DD or ISO).
+          - name: date_to
+            in: query
+            type: string
+            required: false
+            description: End date of the range (format YYYY-MM-DD or ISO).
+          - name: pracownik_id
+            in: query
+            type: integer
+            required: false
+            description: Worker ID to filter by.
+          - name: wejscia_niepoprawne
+            in: query
+            type: boolean
+            required: false
+            allowEmptyValue: true
+            description: Flag - if present, includes invalid entries.
+          - name: wejscia_poprawne
+            in: query
+            type: boolean
+            required: false
+            allowEmptyValue: true
+            description: Flag - if present, includes valid entries.
+        responses:
+          200:
+            description: PDF report generated successfully.
+            content:
+              application/pdf:
+                schema:
+                  type: string
+                  format: binary
+          400:
+            description: Parameter validation error.
+          500:
+            description: Internal server error.
     """
     try:
         date_from_str = request.args.get('date_from')
@@ -181,6 +247,8 @@ def generate_pdf_report():
         if date_to_str:
             try:
                 date_to = datetime.fromisoformat(date_to_str)
+                # Jeśli podano samą datę (format YYYY-MM-DD, bez godziny), ustawiamy czas na koniec dnia,
+                # aby uwzględnić wszystkie wpisy z tego dnia (domyślnie fromisoformat ustawia 00:00:00).
                 if len(date_to_str) == 10:
                     date_to = date_to.replace(hour=23, minute=59, second=59, microsecond=999999)
             except ValueError:
@@ -237,7 +305,7 @@ def generate_pdf_report():
         # On windows, file paths to the font break
         # known issue, applying a monkeypatch
         # https://github.com/xhtml2pdf/xhtml2pdf/issues/623#issuecomment-1372719452
-        pisaFileObject.getNamedFile = lambda self: self.uri 
+        pisaFileObject.getNamedFile = lambda self: self.uri
         pisa_status = pisa.CreatePDF(
             io.BytesIO(html_content.encode('utf-8')),
             dest=pdf_output,
