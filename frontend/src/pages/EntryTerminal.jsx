@@ -6,7 +6,7 @@ import { dataURItoBlob } from '../utils/imageUtils';
 const EntryTerminal = () => {
   const webcamRef = useRef(null);
   const [status, setStatus] = useState('idle');           // 'idle', 'processing', 'granted', 'denied'
-  const [errorMessage, setErrorMessage] = useState('');   // To store backend messages
+  const [errorMessage, setErrorMessage] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Clock Logic
@@ -15,7 +15,7 @@ const EntryTerminal = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Timer Logic (Auto-scan every 3s)
+  // Timer Logic (Auto-scan every 0.5s)
   useEffect(() => {
     let interval;
     if (status === 'idle') {
@@ -118,7 +118,6 @@ const EntryTerminal = () => {
         {status === 'denied' && (
           <div>
             <p style={{ color: '#f87171' }}>Access<br/>Denied</p>
-            {/* Display the backend error message here */}
             <p style={{ fontSize: '1rem', marginTop: '10px', color: '#fff' }}>
               {errorMessage}
             </p>
