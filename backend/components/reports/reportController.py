@@ -28,7 +28,7 @@ def generate_report():
         - `wejscia_poprawne` (bool): Flag - if present, includes valid entries (error code == 0).
 
         **Returns**:
-        - `JSON` - Object containing count, filters used, and the list of entry data.
+        - `JSON` - Object containing count, filters used, calculated statistics, and the list of entry data.
 
         ---
         tags:
@@ -73,6 +73,44 @@ def generate_report():
                 filters:
                   type: object
                   description: Filters used in the query.
+                statistics:
+                  type: object
+                  description: Aggregated statistics for the selected period.
+                  properties:
+                    total_entries:
+                      type: integer
+                      description: Total number of entries in the result set.
+                    valid_entries:
+                      type: integer
+                      description: Number of successful entries (code 0).
+                    invalid_entries:
+                      type: integer
+                      description: Number of failed entries (code != 0).
+                    success_rate_percent:
+                      type: number
+                      format: float
+                      description: Percentage of valid entries.
+                    most_invalid_attempts_worker:
+                      type: object
+                      description: Worker with the most invalid attempts.
+                      properties:
+                        name:
+                          type: string
+                        count:
+                          type: integer
+                    most_valid_entries_worker:
+                      type: object
+                      description: Worker with the most valid entries.
+                      properties:
+                        name:
+                          type: string
+                        count:
+                          type: integer
+                    daily_traffic:
+                      type: object
+                      description: Dictionary mapping dates (YYYY-MM-DD) to entry counts.
+                      additionalProperties:
+                        type: integer
                 data:
                   type: array
                   items:
