@@ -188,7 +188,7 @@ def generate_report():
             json_data.append({
                 **item,
                 'date': item['date'].isoformat(),
-                'face_image': "encoded_image", # obraz base64
+                'face_image': "encoded_image", # obraz base64 # @TODO - zmioana str na base64 usunąć ""
                 'face_image_bytes': None  # Nie wysyłamy bajtów w JSON
             })
 
@@ -306,21 +306,23 @@ def generate_pdf_report():
             show_invalid=show_invalid
         )
 
-        # --- 3. Przygotowanie danych dla szablonu HTML ---
+        # --- 3. Przygotowanie danych dla szablonu HTML (z użyciem funkcji pomocniczej) ---
+        data, statistics = _calculate_statistics(results)
+
         report_data = []
-        for entry, worker in results:
+        for item in data:
             # Konwersja obrazka na Base64 (dla HTML)
             img_b64 = None
-            if entry.face_image:
-                img_b64 = base64.b64encode(entry.face_image).decode('utf-8')
+            if item['face_image_bytes']:
+                img_b64 = base64.b64encode(item['face_image_bytes']).decode('utf-8')
 
             report_data.append({
-                'id': entry.id,
-                'date': entry.date.strftime('%Y-%m-%d %H:%M:%S'),
-                'code': entry.code,
-                'message': entry.message,
-                'worker_id': entry.worker_id,
-                'worker_name': worker.name if worker else 'Nieznany',
+                'id': item['id'],
+                'date': item['date'].strftime('%Y-%m-%d %H:%M:%S'),
+                'code': item['code'],
+                'message': item['message'],
+                'worker_id': item['worker_id'],
+                'worker_name': item['worker_name'],
                 'face_image_b64': img_b64
             })
 
@@ -328,7 +330,8 @@ def generate_pdf_report():
 
         context = {
             'data': report_data,
-            'count': len(report_data),
+            'count': statistics['total_entries'],
+            'statistics': statistics,
             'generation_date': datetime.now().strftime('%Y-%m-%d %H:%M'),
             'filters': {
                 'date_from': date_from_str,
