@@ -105,7 +105,7 @@ const EntryTerminal = () => {
         <div className="timestamp">{formatTime(currentTime)}</div>
       </div>
 
-      {status === 'idle' && <div className="scan-zone"></div>}
+      <div className="scan-zone"></div>
 
       <div className="status-box">
         {status === 'idle' && <p>Hello, please<br/>verify Your QR<br/>code above</p>}
