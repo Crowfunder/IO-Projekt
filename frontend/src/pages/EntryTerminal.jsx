@@ -21,7 +21,7 @@ const EntryTerminal = () => {
     if (status === 'idle') {
       interval = setInterval(() => {
         handleScan();
-      }, 500);
+      }, 3000);
     }
     return () => clearInterval(interval);
   }, [status]);
