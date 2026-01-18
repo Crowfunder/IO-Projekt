@@ -13,20 +13,18 @@
         /* Konfiguracja strony i ramek (nagłówek/stopka) dla xhtml2pdf */
         @page {
             size: A4;
-            margin: 2.5cm 2cm 2.5cm 2cm; /* Marginesy zwiększone góra/dół dla nagłówka/stopki */
+            margin: 2.5cm 2cm 2.5cm 2cm;
 
-            /* Ramka nagłówka - pojawia się na każdej stronie */
             @frame header_frame {
-                -pdf-frame-content: header_content; /* ID diva z treścią */
+                -pdf-frame-content: header_content;
                 top: 1cm;
                 left: 2cm;
                 width: 17cm;
                 height: 1cm;
             }
 
-            /* Ramka stopki - pojawia się na każdej stronie */
             @frame footer_frame {
-                -pdf-frame-content: footer_content; /* ID diva z treścią */
+                -pdf-frame-content: footer_content;
                 bottom: 1cm;
                 left: 2cm;
                 width: 17cm;
@@ -40,12 +38,10 @@
             color: #333;
         }
 
-        /* Ukrycie kontenerów nagłówka/stopki w normalnym przepływie dokumentu */
         #header_content, #footer_content {
             display: none;
         }
 
-        /* Stylizacja treści nagłówka i stopki */
         .header-text {
             text-align: center;
             color: #888;
@@ -121,9 +117,8 @@
 
         /* Sekcja Statystyk */
         .stats-section {
-            margin-top: 40px;
-            /* page-break-inside: avoid; - xhtml2pdf słabo to wspiera, lepiej użyć -pdf-keep-with-next jeśli to możliwe,
-               ale zwykła tabela powinna się dobrze przenieść */
+            margin-top: 20px;    /* Zmniejszono z 40px, bo filtry mają już margines */
+            margin-bottom: 40px; /* Dodano margines dolny, aby oddzielić od tabeli */
             border-top: 2px solid #2c3e50;
             padding-top: 20px;
         }
@@ -214,42 +209,6 @@
         {% endif %}
     </div>
 
-    <h3>Lista Zdarzeń ({{ count }})</h3>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 15%;">Data</th>
-                <th style="width: 20%;">Pracownik</th>
-                <th style="width: 10%;">Kod</th>
-                <th style="width: 35%;">Komunikat</th>
-                <th style="width: 20%;">Zdjęcie</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in data %}
-            <tr>
-                <td>{{ item.date }}</td>
-                <td>
-                    <strong>{{ item.worker_name }}</strong><br>
-                    <span style="font-size: 10px; color: #888;">ID: {{ item.worker_id }}</span>
-                </td>
-                <td class="{{ 'status-ok' if item.code == 0 else 'status-error' }}">
-                    {{ item.code }}
-                </td>
-                <td>{{ item.message }}</td>
-                <td style="text-align: center;">
-                    {% if item.face_image_b64 %}
-                        <img src="data:image/jpeg;base64,{{ item.face_image_b64 }}" class="face-img" alt="Foto">
-                    {% else %}
-                        <span style="color: #ccc;">-</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
     {% if statistics %}
     <div class="stats-section">
         <h3>Podsumowanie Statystyczne</h3>
@@ -311,6 +270,42 @@
         </table>
     </div>
     {% endif %}
+
+    <h3>Lista Zdarzeń ({{ count }})</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 15%;">Data</th>
+                <th style="width: 20%;">Pracownik</th>
+                <th style="width: 10%;">Kod</th>
+                <th style="width: 35%;">Komunikat</th>
+                <th style="width: 20%;">Zdjęcie</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                <td>{{ item.date }}</td>
+                <td>
+                    <strong>{{ item.worker_name }}</strong><br>
+                    <span style="font-size: 10px; color: #888;">ID: {{ item.worker_id }}</span>
+                </td>
+                <td class="{{ 'status-ok' if item.code == 0 else 'status-error' }}">
+                    {{ item.code }}
+                </td>
+                <td>{{ item.message }}</td>
+                <td style="text-align: center;">
+                    {% if item.face_image_b64 %}
+                        <img src="data:image/jpeg;base64,{{ item.face_image_b64 }}" class="face-img" alt="Foto">
+                    {% else %}
+                        <span style="color: #ccc;">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
 </body>
 </html>
