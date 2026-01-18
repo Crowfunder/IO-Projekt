@@ -36,7 +36,7 @@ const EntryTerminal = () => {
     if (status !== 'idle') return;
 
     setStatus('processing');
-    setErrorMessage(''); // Reset previous errors
+    setErrorMessage('');
 
     try {
       const imageSrc = webcamRef.current.getScreenshot();

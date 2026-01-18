@@ -14,12 +14,8 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [workersList, setWorkersList] = useState([]); 
   const [reportData, setReportData] = useState(null); 
-
-  // 👇 NOWE: Stany do obsługi podglądu zdjęcia
-  const [previewImage, setPreviewImage] = useState(null); // Base64 otwartego zdjęcia
-  const [zoomLevel, setZoomLevel] = useState(1);          // Poziom przybliżenia (1 = 100%)
-
-  // Stan Filtrów
+  const [previewImage, setPreviewImage] = useState(null); 
+  const [zoomLevel, setZoomLevel] = useState(1);
   const [filters, setFilters] = useState({
     workerId: 'all',          
     dateRange: [null, null],  
@@ -33,9 +29,9 @@ export default function ReportsPage() {
             const data = await workerApi.getAll();
             const list = Array.isArray(data) ? data : (data.workers || []);
             const selectOptions = list.map(w => ({ value: w.id.toString(), label: w.name }));
-            setWorkersList([{ value: 'all', label: 'Wszyscy Pracownicy' }, ...selectOptions]);
+            setWorkersList([{ value: 'all', label: 'All Employees' }, ...selectOptions]);
         } catch (err) {
-            console.error("Błąd ładowania pracowników:", err);
+            console.error("Error loading employees:", err);
         }
     };
     fetchWorkers();
@@ -47,7 +43,7 @@ export default function ReportsPage() {
         const data = await workerApi.getReportData(filters);
         setReportData(data);
     } catch (err) {
-        alert("Nie udało się wygenerować raportu: " + err.message);
+        alert("Failed to generate report: " + err.message);
     } finally {
         setLoading(false);
     }
@@ -60,22 +56,21 @@ export default function ReportsPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Raport_Wejsc_${new Date().toISOString().slice(0,10)}.pdf`;
+        a.download = `Entry_Report_${new Date().toISOString().slice(0,10)}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
     } catch (err) {
-        alert("Błąd pobierania PDF: " + err.message);
+        alert("Error downloading PDF: " + err.message);
     } finally {
         setLoading(false);
     }
   };
 
-  // 👇 NOWE: Funkcje obsługi podglądu
   const openPreview = (base64Image) => {
     if (!base64Image) return;
     setPreviewImage(base64Image);
-    setZoomLevel(1); // Reset zoomu przy otwarciu
+    setZoomLevel(1);
   };
 
   const closePreview = () => {
@@ -83,19 +78,19 @@ export default function ReportsPage() {
   };
 
   const handleZoom = (delta) => {
-    setZoomLevel(prev => Math.max(0.5, Math.min(prev + delta, 5))); // Max zoom 5x, min 0.5x
+    setZoomLevel(prev => Math.max(0.5, Math.min(prev + delta, 5)));
   };
 
   return (
     <Box>
-      <Text size="xl" fw={700} mb="lg">Generator Raportów</Text>
+      <Text size="xl" fw={700} mb="lg">Report Generator</Text>
 
-      {/* SEKCJA FILTRÓW */}
+      {/* FILTERS SECTION */}
       <Paper withBorder p="md" radius="md" mb="lg">
         <Group align="flex-end">
             <Select
-                label="Pracownik"
-                placeholder="Wybierz..."
+                label="Employee"
+                placeholder="Select..."
                 data={workersList}
                 value={filters.workerId}
                 onChange={(val) => setFilters({...filters, workerId: val})}
@@ -104,8 +99,8 @@ export default function ReportsPage() {
             />
             <DatePickerInput
                 type="range"
-                label="Okres czasu"
-                placeholder="Od - Do"
+                label="Time Period"
+                placeholder="From - To"
                 value={filters.dateRange}
                 onChange={(val) => setFilters({...filters, dateRange: val})}
                 style={{ flex: 1 }}
@@ -114,18 +109,17 @@ export default function ReportsPage() {
 
         <Group mt="md" justify="space-between" align="center">
             <Group>
-                <Text size="sm" fw={500}>Stan wejścia:</Text>
-                <Checkbox label="Poprawne" checked={filters.includeValid} onChange={(e) => setFilters({...filters, includeValid: e.currentTarget.checked})} color="green" />
-                <Checkbox label="Niepoprawne" checked={filters.includeInvalid} onChange={(e) => setFilters({...filters, includeInvalid: e.currentTarget.checked})} color="red" />
+                <Text size="sm" fw={500}>Entry Status:</Text>
+                <Checkbox label="Valid" checked={filters.includeValid} onChange={(e) => setFilters({...filters, includeValid: e.currentTarget.checked})} color="green" />
+                <Checkbox label="Invalid" checked={filters.includeInvalid} onChange={(e) => setFilters({...filters, includeInvalid: e.currentTarget.checked})} color="red" />
             </Group>
             <Group>
-                <Button leftSection={<IconSearch size={16}/>} onClick={handleGenerate} loading={loading}>Generuj Podgląd</Button>
-                <Button leftSection={<IconFileDownload size={16}/>} variant="outline" color="red" onClick={handleDownloadPdf} loading={loading} disabled={!reportData}>Pobierz PDF</Button>
+                <Button leftSection={<IconSearch size={16}/>} onClick={handleGenerate} loading={loading}>Generate Preview</Button>
+                <Button leftSection={<IconFileDownload size={16}/>} variant="outline" color="red" onClick={handleDownloadPdf} loading={loading} disabled={!reportData}>Download PDF</Button>
             </Group>
         </Group>
       </Paper>
 
-      {/* SEKCJA WYNIKÓW */}
       <Card withBorder shadow="sm" radius="md" style={{ minHeight: 200, position: 'relative' }}>
         <LoadingOverlay visible={loading} />
         
@@ -133,11 +127,11 @@ export default function ReportsPage() {
             <Table striped highlightOnHover verticalSpacing="sm">
               <Table.Thead>
                   <Table.Tr>
-                      <Table.Th>Data i Czas</Table.Th>
-                      <Table.Th>Pracownik</Table.Th>
+                      <Table.Th>Date and Time</Table.Th>
+                      <Table.Th>Employee</Table.Th>
                       <Table.Th>Status</Table.Th>
-                      <Table.Th>Zdjęcie (Kliknij)</Table.Th>
-                      <Table.Th>Wiadomość Systemowa</Table.Th>
+                      <Table.Th>Photo (Click)</Table.Th>
+                      <Table.Th>System Message</Table.Th>
                   </Table.Tr>
               </Table.Thead>
                 <Table.Tbody>
@@ -151,7 +145,7 @@ export default function ReportsPage() {
                         return (
                             <Table.Tr>
                                 <Table.Td colSpan={5} style={{ textAlign: 'center', padding: 20 }}>
-                                    <Text c="dimmed">Brak wyników dla podanych filtrów.</Text>
+                                    <Text c="dimmed">No results for the given filters.</Text>
                                 </Table.Td>
                             </Table.Tr>
                         );
@@ -159,25 +153,24 @@ export default function ReportsPage() {
 
                     return items.map((entry) => (
                         <Table.Tr key={entry.id}>
-                            <Table.Td>{entry.date ? new Date(entry.date).toLocaleString('pl-PL') : '-'}</Table.Td>
-                            <Table.Td><Text size="sm" fw={500}>{entry.worker_name || 'Nieznany'}</Text></Table.Td>
+                            <Table.Td>{entry.date ? new Date(entry.date).toLocaleString('en-US') : '-'}</Table.Td>
+                            <Table.Td><Text size="sm" fw={500}>{entry.worker_name || 'Unknown'}</Text></Table.Td>
                             <Table.Td>
-                                {entry.code === 0 ? <Badge color="green">Poprawne</Badge> : <Badge color="red">Błąd ({entry.code})</Badge>}
+                                {entry.code === 0 ? <Badge color="green">Valid</Badge> : <Badge color="red">Error ({entry.code})</Badge>}
                             </Table.Td>
                             <Table.Td>
                                 {entry.face_image ? (
-                                    <Tooltip label="Kliknij, aby powiększyć">
+                                    <Tooltip label="Click to enlarge">
                                         <Avatar 
                                             src={`data:image/jpeg;base64,${entry.face_image}`} 
                                             size="lg" 
                                             radius="sm" 
-                                            // 👇 NOWE: Kliknięcie otwiera podgląd
                                             style={{ cursor: 'pointer', border: '1px solid #444' }}
                                             onClick={() => openPreview(entry.face_image)}
                                         />
                                     </Tooltip>
                                 ) : (
-                                    <Text c="dimmed" size="xs">Brak</Text>
+                                    <Text c="dimmed" size="xs">None</Text>
                                 )}
                             </Table.Td>
                             <Table.Td><Text size="sm" c={entry.code === 0 ? 'dimmed' : 'red'}>{entry.message}</Text></Table.Td>
@@ -189,22 +182,21 @@ export default function ReportsPage() {
         </ScrollArea>
       </Card>
 
-      {/* 👇 NOWE: MODAL Z PODGLĄDEM ZDJĘCIA */}
       <Modal 
         opened={!!previewImage} 
         onClose={closePreview} 
-        title="Analiza Obrazu z Kamery" 
-        size="xl" // Duży modal
+        title="Camera Image Analysis" 
+        size="xl" // Large modal
         centered
       >
         <Paper withBorder p="xs" mb="md">
             <Group justify="center">
                 <Button variant="default" onClick={() => handleZoom(-0.5)} disabled={zoomLevel <= 0.5} leftSection={<IconZoomOut size={16}/>}>
-                    Oddal
+                    Zoom Out
                 </Button>
                 <Text fw={700}>{Math.round(zoomLevel * 100)}%</Text>
                 <Button variant="default" onClick={() => handleZoom(0.5)} disabled={zoomLevel >= 5} leftSection={<IconZoomIn size={16}/>}>
-                    Przybliż
+                    Zoom In
                 </Button>
                 <Button variant="subtle" color="blue" onClick={() => setZoomLevel(1)} leftSection={<IconRotate size={16}/>}>
                     Reset
@@ -212,7 +204,6 @@ export default function ReportsPage() {
             </Group>
         </Paper>
 
-        {/* Kontener ze scrollem dla powiększonego zdjęcia */}
         <Box 
             style={{ 
                 height: '60vh', 
@@ -220,19 +211,18 @@ export default function ReportsPage() {
                 display: 'flex', 
                 justifyContent: 'center', 
                 alignItems: 'center',
-                backgroundColor: '#1A1B1E', // Ciemne tło dla lepszego kontrastu
+                backgroundColor: '#1A1B1E',
                 borderRadius: 8
             }}
         >
             {previewImage && (
                 <img 
                     src={`data:image/jpeg;base64,${previewImage}`} 
-                    alt="Analiza"
+                    alt="Analysis"
                     style={{ 
                         transform: `scale(${zoomLevel})`, 
                         transition: 'transform 0.2s ease-out',
                         maxWidth: '100%',
-                        // Kluczowe: jeśli zoom > 1, pozwalamy obrazowi wyjść poza obrys, aby scroll działał
                         transformOrigin: 'center center' 
                     }} 
                 />
