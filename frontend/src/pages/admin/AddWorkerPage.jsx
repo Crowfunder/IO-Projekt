@@ -1,32 +1,31 @@
 import React, { useState } from 'react';
 import { TextInput, FileInput, Button, Paper, Text, Notification, Group, Modal, Image, Center } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconUpload, IconCheck, IconX, IconPrinter } from '@tabler/icons-react';
+import { IconUpload, IconCheck, IconX, IconPrinter, IconDownload } from '@tabler/icons-react';
 import { workerApi } from '../../services/workerApi';
 import { useNavigate } from 'react-router-dom';
 
 export default function AddWorkerPage() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    
-    // Form State
     const [formData, setFormData] = useState({
         name: '',
         expiration_date: new Date(),
         file: null
     });
+
     const [notification, setNotification] = useState(null);
     const [passImage, setPassImage] = useState(null);
     const [passModalOpen, setPassModalOpen] = useState(false);
 
     const handleSubmit = async () => {
         if (!formData.name || !formData.file) {
-            setNotification({ color: 'red', message: 'Name and Photo are required!' });
+            setNotification({ color: 'red', message: 'Fill in the name and photo!' });
             return;
         }
 
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to start of day for fair comparison
+        today.setHours(0, 0, 0, 0); 
         const selectedDate = new Date(formData.expiration_date);
         selectedDate.setHours(0, 0, 0, 0);
 
@@ -37,18 +36,15 @@ export default function AddWorkerPage() {
 
         setLoading(true);
         try {
-            // 1. Create the Worker
             const newWorker = await workerApi.create(formData.name, formData.expiration_date, formData.file);
             
-            setNotification({ color: 'green', message: 'Worker created successfully. Generating Pass...' });
+            setNotification({ color: 'green', message: 'Employee added. Generating pass...' });
 
-            // 2. Fetch the Entry Pass Image
             const imageBlob = await workerApi.getEntryPass(newWorker.id);
-            
-            // 3. Convert Blob to URL for display
             const imageUrl = URL.createObjectURL(imageBlob);
+            
             setPassImage(imageUrl);
-            setPassModalOpen(true); 
+            setPassModalOpen(true);
 
         } catch (err) {
             setNotification({ color: 'red', message: err.message });
@@ -57,21 +53,32 @@ export default function AddWorkerPage() {
         }
     };
 
-    // Clean up when closing modal
     const handleCloseModal = () => {
         setPassModalOpen(false);
         navigate('/admin/workers');
     };
 
-    // Print helper
     const handlePrint = () => {
         const printWindow = window.open(passImage);
         printWindow.print();
     };
 
+    const handleDownload = () => {
+        if (!passImage) return;
+
+        const link = document.createElement('a');
+        link.href = passImage;
+        const safeName = formData.name.replace(/\s+/g, '_'); 
+        link.download = `Pass_${safeName}.png`;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div style={{ maxWidth: 500 }}>
-            <Text size="xl" fw={700} mb="lg">Add New Worker</Text>
+            <Text size="xl" fw={700} mb="lg">Add New Employee</Text>
             
             {notification && (
                 <Notification 
@@ -87,7 +94,7 @@ export default function AddWorkerPage() {
 
             <Paper withBorder p="xl" radius="md">
                 <TextInput
-                    label="Full Name"
+                    label="First and Last Name"
                     placeholder="John Doe"
                     required
                     value={formData.name}
@@ -97,7 +104,7 @@ export default function AddWorkerPage() {
                 
                 <DatePickerInput
                     label="Pass Expiration Date"
-                    placeholder="Pick date"
+                    placeholder="Select date"
                     required
                     value={formData.expiration_date}
                     onChange={(date) => setFormData({...formData, expiration_date: date})}
@@ -105,8 +112,8 @@ export default function AddWorkerPage() {
                 />
 
                 <FileInput
-                    label="Face Verification Photo"
-                    placeholder="Upload .jpg/.png"
+                    label="Face Photo (Verification)"
+                    placeholder="Select .jpg/.png file"
                     leftSection={<IconUpload size={14} />}
                     required
                     value={formData.file}
@@ -122,18 +129,33 @@ export default function AddWorkerPage() {
             <Modal 
                 opened={passModalOpen} 
                 onClose={handleCloseModal} 
-                title="Entry Pass Generated"
+                title="Generated Pass"
                 size="lg"
+                centered
             >
                 <Center>
-                    {passImage && <Image src={passImage} alt="Entry Pass" radius="md" />}
+                    {passImage && <Image src={passImage} alt="Entry Pass" radius="md" style={{ maxHeight: '60vh' }} />}
                 </Center>
-                <Group justify="center" mt="md">
-                    <Button leftSection={<IconPrinter size={16}/>} onClick={handlePrint}>
-                        Print Pass
+                
+                <Group justify="center" mt="xl">
+                    <Button 
+                        leftSection={<IconPrinter size={20}/>} 
+                        onClick={handlePrint} 
+                        variant="default"
+                    >
+                        Print
                     </Button>
-                    <Button variant="default" onClick={handleCloseModal}>
-                        Done
+
+                    <Button 
+                        leftSection={<IconDownload size={20}/>} 
+                        onClick={handleDownload}
+                        color="blue"
+                    >
+                        Download QR Code
+                    </Button>
+
+                    <Button variant="subtle" onClick={handleCloseModal}>
+                        Close
                     </Button>
                 </Group>
             </Modal>
