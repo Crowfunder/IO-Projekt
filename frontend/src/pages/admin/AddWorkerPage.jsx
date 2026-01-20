@@ -24,6 +24,16 @@ export default function AddWorkerPage() {
             return;
         }
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); 
+        const selectedDate = new Date(formData.expiration_date);
+        selectedDate.setHours(0, 0, 0, 0);
+
+        if (selectedDate < today) {
+            setNotification({ color: 'red', message: 'Expiration date cannot be in the past!' });
+            return;
+        }
+
         setLoading(true);
         try {
             const newWorker = await workerApi.create(formData.name, formData.expiration_date, formData.file);
