@@ -1,6 +1,3 @@
-# :red_circle:QREC
-This is the client-side application for the factory entry system. It provides a retro-crt security camera interface for entry terminal and a comprehensive, modern administration panel for managing workers and generating reports.
-
 # Quickstart Guide
 ## For Workers: Clocking In
 

@@ -1,0 +1,26 @@
+{% extends "default/index.html.jinja2" %}
+
+{% block title %}🔴QRec Documentation{% endblock %}
+
+{% block nav %}
+    <img src="https://pdoc.dev/logo.svg" class="logo" alt="project logo"/>
+    <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
+                   pattern=".+" required>
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+    <main class="pdoc">
+
+    {% filter to_html %}
+# 🔴QRec Documentation
+Welcome to QRec documentation!
+
+## Navigation
+#### - [Back-end](backend.html)
+#### - [Front-end](frontend.html)
+
+    {% endfilter %}
+    </main>
+    {% include "search.html.jinja2" %}
+{% endblock %}
