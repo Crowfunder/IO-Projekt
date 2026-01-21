@@ -83,7 +83,7 @@ const EntryTerminal = () => {
       console.error("Network Error:", error);
       if (timerRef.current) clearTimeout(timerRef.current);
       setStatus('denied');
-        setErrorMessage("Connection error");
+      setErrorMessage("Connection error");
     }
     setTimeout(() => {
         setStatus('idle');
