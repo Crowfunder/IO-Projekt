@@ -2,8 +2,7 @@ import pytest
 import numpy as np
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
-
-from backend.database.models import Worker
+import backend.components.workers.workerService
 from backend.components.workers.workerService import (
     create_worker,
     get_worker_by_id,
@@ -26,13 +25,6 @@ from backend.components.camera_verification.qrcode.qrcodeService import (
 
 @patch('backend.components.workers.workerService.face_recognition.face_encodings')
 def test_create_worker_success(mock_face_encodings, db_session):
-    """
-    Testuje pełny proces tworzenia pracownika:
-    1. Mockuje bibliotekę face_recognition (zwraca losowy wektor).
-    2. Sprawdza czy pracownik trafił do bazy.
-    3. Sprawdza czy wygenerowano sekret QR (inny niż tymczasowy).
-    """
-    # Setup mocka - symulujemy, że biblioteka znalazła jedną twarz (wektor 128 liczb)
     fake_embedding = [np.random.rand(128)]
     mock_face_encodings.return_value = fake_embedding
 
@@ -182,3 +174,34 @@ def test_embedding_serialization_roundtrip():
         # Więc odczytany restored_arr będzie listą zawierającą wektory.
 
         np.testing.assert_array_almost_equal(restored_arr[0], original_embedding)
+
+
+def test_generate_and_decrypt_secret_functional():
+    worker_id = 67
+    worker_name = "Six Seven"
+
+    mock_worker = MagicMock()
+    mock_worker.id = worker_id
+    mock_worker.name = worker_name
+
+    # Wywołujemy poprawną funkcję z modułu (generate_worker_secret) przekazując mocka
+    secret = backend.components.workers.workerService.generate_worker_secret(mock_worker)
+
+    data = backend.components.workers.workerService.decrypt_worker_secret(secret)
+
+    # Asercja 1: Upewnij się, że odszyfrowane dane są słownikiem
+    assert isinstance(data, dict)
+
+    # Asercja 2: Sprawdź, czy kluczowe, NIESŁOSOWE dane się zgadzają
+    assert data['worker_id'] == worker_id
+    assert data['name'] == worker_name
+
+    # Asercja 3: Sprawdź, czy losowa wartość w ogóle istnieje
+    assert 'rand_value' in data
+    assert len(data['rand_value']) == 6  # np. Sprawdź długość
+
+def test_decrypt_secret():
+    secret = 'gAAAAABpPdLUcBJbhCLwEX5HKf8mzB-sUIzAYQaQencHd--KaC4wbHRHlmdIfHSioWUMoZ_woRxjTsBVr30YQBRYv5xoicHjaERw2aGLvQ5Wgud1gaFNR7_zgTpNqzu96fsY-dQt3NvdRUXFmMKWiWV-9VgE99_HBg=='
+    data = backend.components.workers.workerService.decrypt_worker_secret(secret)
+    assert data['worker_id'] == 67
+    assert data['name'] == "Six Seven"
