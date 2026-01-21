@@ -17,13 +17,13 @@ export default function HeadManager() {
     const isAdmin = location.pathname.startsWith('/admin');
 
     if (isAdmin) {
-      document.title = 'Admin Panel - IO-Projekt';
+      document.title = 'QREC Admin Panel';
       
       const svgString = renderToStaticMarkup(<IconShieldLock color="#228be6" size={64} />);
       link.href = `data:image/svg+xml,${encodeURIComponent(svgString)}`;
       
     } else {
-      document.title = 'IO-Projekt';
+      document.title = 'QREC';
       link.href = '/red.svg'; 
     }
 
