@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
     Paper, Group, Select, Button, Checkbox, Table, Text, 
     Card, Badge, Avatar, LoadingOverlay, ScrollArea, Box, 
-    Modal, ActionIcon, Tooltip, Center 
+    Modal, Tooltip 
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { 

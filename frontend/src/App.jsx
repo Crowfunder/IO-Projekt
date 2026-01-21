@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { MantineProvider } from '@mantine/core';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import '@mantine/core/styles.css';

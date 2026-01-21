@@ -5,19 +5,17 @@ import { dataURItoBlob } from '../utils/imageUtils';
 
 const EntryTerminal = () => {
   const webcamRef = useRef(null);
-  const [status, setStatus] = useState('idle');           // 'idle', 'processing', 'granted', 'denied'
+  const [status, setStatus] = useState('idle');  // 'idle', 'processing', 'granted', 'denied'
   const [errorMessage, setErrorMessage] = useState('');
   const [currentTime, setCurrentTime] = useState(new Date());
   const scanLock = useRef(false);
   const timerRef = useRef(null);
 
-  // Clock Logic
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Timer Logic (Auto-scan every 0.5s)
   useEffect(() => {
     let interval;
     if (status === 'idle') {
