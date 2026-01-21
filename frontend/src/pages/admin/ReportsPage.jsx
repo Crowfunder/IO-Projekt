@@ -37,6 +37,10 @@ export default function ReportsPage() {
     fetchWorkers();
   }, []);
 
+  useEffect(() => {
+        handleGenerate();
+    }, []);
+
   const handleGenerate = async () => {
     setLoading(true);
     try {
@@ -85,7 +89,6 @@ export default function ReportsPage() {
     <Box>
       <Text size="xl" fw={700} mb="lg">Report Generator</Text>
 
-      {/* FILTERS SECTION */}
       <Paper withBorder p="md" radius="md" mb="lg">
         <Group align="flex-end">
             <Select
